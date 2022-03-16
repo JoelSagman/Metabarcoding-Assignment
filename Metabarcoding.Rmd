@@ -1,0 +1,63 @@
+---
+title: "Metabar"
+output: html_document
+---
+
+```{r message = FALSE, warning = FALSE}
+library(ggplot2)
+library(ape)
+library(ggtree)
+library(vegan)
+library(dplyr)
+source("http://bit.ly/theme_pub")
+theme_set(theme_pub())
+```
+
+## 1. What effect (if any) does garlic mustard have on the plant community?
+#### simplify data to just presence or absense of 
+```{r}
+FlDat<-read.csv("./FloristicSurvey.csv") # import data set
+PDat <- select(FlDat, Claytonia_virginiana:maianthenum_racemosum) # this removes all data except for the species in the community
+row.names(PDat) <- Dat$Quadrate  # adds row names pertaining to each quadrate to the species data
+```
+#### Prepare distance tree
+```{r}
+P_bin <- PDat # makes a new data frame to be converted into binary
+P_bin[P_bin > 0] <- 1  # reformat the data as presence/absence of a plant species in each community
+P_dist<- dist(P_bin, method = 'binary') # calculates the distance between each sample to compare sample similarity
+P_tree <- nj(P_dist) # builds a tree with the Neighbour-joining approach
+```
+#### Tree from binary distances
+```{r}
+ggtree(P_tree, layout = "rectangular") %<+% Dat + # builds tree
+  geom_tiplab(aes(colour = Location)) + 
+  theme(legend.position="right")
+```
+
+##### Based on the similarity between samples in both the present or absense of garlic mustard, it is likely that it has no effect on plant community
+
+
+## 2. What has a stronger effect on plant community: the presence/absence of garlic mustard or sampling population? 
+```{r}
+Adist <- vegdist(PDat, method = 'bray', binary = FALSE) # calculates distance between plant communities through Bray-Curtis dissimilarity to include abundance
+NMDSdat <- metaMDS(Adist, k = 2, trymax=100) # calculates the Non-Metric Multidimensional Scaling (NMDS) and allows us to visualize the data in 2 dimensions as defined by k =
+
+PlDat<-data.frame(NMDS1=NMDSdat$points[,1], #Prepares data for plotting
+                 NMDS2=NMDSdat$points[,2],
+                 SampleID=row.names(Dat),
+                 Population = as.character(Dat$Population),
+                 Location = Dat$Location)
+```
+
+#### Plot by population
+```{r}
+qplot(x=NMDS1,y=NMDS2,colour=Population,alpha=I(0.6),data=PlDat)
+
+```
+
+#### Plot by location
+```{r}
+qplot(x=NMDS1,y=NMDS2,colour=Location,alpha=I(0.6),data=PlDat)
+```
+
+#### Based on the clustering of the data, it would appear that the population of origin has a great effect. 
