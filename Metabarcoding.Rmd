@@ -1,7 +1,9 @@
 ---
-title: "Metabar"
+title: "Metabarcoding"
 output: html_document
 ---
+
+[Joel Sagman](https://github.com/JoelSagman/Metabarcoding-Assignment)
 
 ```{r message = FALSE, warning = FALSE}
 library(ggplot2)
@@ -13,12 +15,12 @@ source("http://bit.ly/theme_pub")
 theme_set(theme_pub())
 ```
 
-## 1. What effect (if any) does garlic mustard have on the plant community?
+### 1. What effect (if any) does garlic mustard have on the plant community?
 #### simplify data to just presence or absense of 
 ```{r}
 FlDat<-read.csv("./FloristicSurvey.csv") # import data set
 PDat <- select(FlDat, Claytonia_virginiana:maianthenum_racemosum) # this removes all data except for the species in the community
-row.names(PDat) <- Dat$Quadrate  # adds row names pertaining to each quadrate to the species data
+row.names(PDat) <- FlDat$Quadrate  # adds row names pertaining to each quadrate to the species data
 ```
 #### Prepare distance tree
 ```{r}
@@ -29,7 +31,7 @@ P_tree <- nj(P_dist) # builds a tree with the Neighbour-joining approach
 ```
 #### Tree from binary distances
 ```{r}
-ggtree(P_tree, layout = "rectangular") %<+% Dat + # builds tree
+ggtree(P_tree, layout = "rectangular") %<+% FlDat + # builds tree
   geom_tiplab(aes(colour = Location)) + 
   theme(legend.position="right")
 ```
@@ -37,16 +39,16 @@ ggtree(P_tree, layout = "rectangular") %<+% Dat + # builds tree
 ##### Based on the similarity between samples in both the present or absense of garlic mustard, it is likely that it has no effect on plant community
 
 
-## 2. What has a stronger effect on plant community: the presence/absence of garlic mustard or sampling population? 
+### 2. What has a stronger effect on plant community: the presence/absence of garlic mustard or sampling population? 
 ```{r}
 Adist <- vegdist(PDat, method = 'bray', binary = FALSE) # calculates distance between plant communities through Bray-Curtis dissimilarity to include abundance
 NMDSdat <- metaMDS(Adist, k = 2, trymax=100) # calculates the Non-Metric Multidimensional Scaling (NMDS) and allows us to visualize the data in 2 dimensions as defined by k =
 
 PlDat<-data.frame(NMDS1=NMDSdat$points[,1], #Prepares data for plotting
                  NMDS2=NMDSdat$points[,2],
-                 SampleID=row.names(Dat),
-                 Population = as.character(Dat$Population),
-                 Location = Dat$Location)
+                 SampleID=row.names(FlDat),
+                 Population = as.character(FlDat$Population),
+                 Location = FlDat$Location)
 ```
 
 #### Plot by population
